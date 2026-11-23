@@ -1,0 +1,810 @@
+@page
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Placement Dashboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root {
+    --ink: #1b2a38;
+    --muted: #5c6b78;
+    --paper: #f3f5f7;
+    --card: #fff;
+    --line: #d9e0e6;
+    --teal: #1f7a7a;
+    --amber: #d9962b;
+    --brick: #b4493a;
+    --navy: #2b4a66;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 15px/1.5 "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font: 600 30px/1.1 Fraunces, Georgia, serif;
+    margin: 0;
+}
+
+header p {
+    margin: 4px 0 0;
+    color: var(--muted);
+}
+
+h2 {
+    font-size: 16px;
+    margin: 0 0 12px;
+}
+
+.hero {
+    display: grid;
+    grid-template-columns: 1.2fr 2fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.rate {
+    background: var(--ink);
+    color: #fff;
+    border-radius: 6px;
+    padding: 22px;
+}
+
+.rate .big {
+    font: 600 64px/1 Fraunces, Georgia, serif;
+}
+
+.rate .bar {
+    height: 8px;
+    background: #ffffff30;
+    border-radius: 4px;
+    margin: 14px 0 8px;
+    overflow: hidden;
+}
+
+.rate .bar i {
+    display: block;
+    height: 100%;
+    background: var(--amber);
+    width: 0;
+    transition: width .8s;
+}
+
+.rate small {
+    opacity: .75;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.stat b {
+    display: block;
+    font-size: 26px;
+    font-weight: 600;
+}
+
+.stat span {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.chart {
+    height: 240px;
+    position: relative;
+}
+
+.split {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr;
+    gap: 16px;
+}
+
+.tools {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+input, select, textarea, button {
+    font: inherit;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: #fff;
+    color: var(--ink);
+}
+
+input[type=search] {
+    flex: 1;
+    min-width: 160px;
+}
+
+button {
+    cursor: pointer;
+    background: var(--teal);
+    color: #fff;
+    border-color: var(--teal);
+}
+
+button.ghost {
+    background: #fff;
+    color: var(--ink);
+    border-color: var(--line);
+}
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+:focus-visible {
+    outline: 3px solid var(--amber);
+    outline-offset: 2px;
+}
+
+.tablewrap {
+    max-height: 420px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+th, td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    background: #eaeff3;
+    cursor: pointer;
+    user-select: none;
+}
+
+.pill {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #fff;
+}
+
+.Placed {
+    background: var(--teal);
+}
+
+.Unplaced {
+    background: var(--brick);
+}
+
+.drive {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    gap: 12px;
+}
+
+.drive:last-child {
+    border: 0;
+}
+
+.drive em {
+    font-style: normal;
+    color: var(--muted);
+    font-size: 13px;
+    display: block;
+}
+
+dialog {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    width: min(520px, 92vw);
+    padding: 20px;
+}
+
+dialog::backdrop {
+    background: #1b2a3866;
+}
+
+dialog label {
+    display: block;
+    margin: 10px 0 4px;
+    font-weight: 500;
+}
+
+dialog input, dialog textarea {
+    width: 100%;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 4px;
+    display: none;
+}
+
+@media(max-width: 900px) {
+    .hero, .grid, .split {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(prefers-reduced-motion: reduce) {
+    .rate .bar i {
+        transition: none;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="wrap" id="root">
+
+<header>
+    <div>
+        <h1>Placement dashboard</h1>
+        <p>Batch 2026 · live from the placement cell</p>
+    </div>
+
+    <button id="emailBtn" disabled>
+        Email selected students
+    </button>
+</header>
+
+<section class="hero">
+    <div class="rate">
+        <div>Students placed</div>
+        <div class="big" id="pct">0%</div>
+
+        <div class="bar">
+            <i id="bar"></i>
+        </div>
+
+        <small id="ratio"></small>
+    </div>
+
+    <div class="stats">
+        <div class="card stat">
+            <b id="avg">–</b>
+            <span>Average package (LPA)</span>
+        </div>
+
+        <div class="card stat">
+            <b id="max">–</b>
+            <span>Highest package (LPA)</span>
+        </div>
+
+        <div class="card stat">
+            <b id="placed">–</b>
+            <span>Placed</span>
+        </div>
+
+        <div class="card stat">
+            <b id="unplaced">–</b>
+            <span>Still looking</span>
+        </div>
+    </div>
+</section>
+
+<section class="grid">
+    <div class="card">
+        <h2>Placed vs unplaced by department</h2>
+        <div class="chart">
+            <canvas id="cDept"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Offers by company</h2>
+        <div class="chart">
+            <canvas id="cComp"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Package distribution</h2>
+        <div class="chart">
+            <canvas id="cPkg"></canvas>
+        </div>
+    </div>
+</section>
+
+<section class="split">
+    <div class="card">
+        <h2>Students</h2>
+
+        <div class="tools">
+            <input type="search" id="q"
+                   placeholder="Search name or company"
+                   aria-label="Search students">
+
+            <select id="fDept" aria-label="Department">
+                <option value="">All departments</option>
+            </select>
+
+            <select id="fStatus" aria-label="Status">
+                <option value="">All statuses</option>
+                <option>Placed</option>
+                <option>Unplaced</option>
+            </select>
+        </div>
+
+        <div class="tablewrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="all"
+                                   aria-label="Select all shown">
+                        </th>
+                        <th data-k="name">Name ↕</th>
+                        <th data-k="department">Dept ↕</th>
+                        <th data-k="cgpa">CGPA ↕</th>
+                        <th data-k="status">Status ↕</th>
+                        <th data-k="company">Company ↕</th>
+                        <th data-k="packageLpa">LPA ↕</th>
+                    </tr>
+                </thead>
+
+                <tbody id="rows"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Company drives</h2>
+        <div id="drives"></div>
+    </div>
+</section>
+</div>
+
+<dialog id="dlg">
+    <h2>Email <span id="cnt"></span> student(s)</h2>
+
+    <label for="subj">Subject</label>
+    <input id="subj" value="Placement update">
+
+    <label for="body">
+        Message (use {name} for the student's name)
+    </label>
+
+    <textarea id="body" rows="6">Hi {name},
+
+A new company drive is open. Please check the placement portal and register before the deadline.
+
+Placement Cell</textarea>
+
+    <p style="text-align:right;margin:14px 0 0">
+        <button class="ghost" id="cancel">Cancel</button>
+        <button id="send">Send email</button>
+    </p>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+
+const state = {
+    students: [],
+    sortKey: "name",
+    asc: true,
+    picked: new Set()
+};
+
+let charts = [];
+
+function toast(message) {
+    const el = $("#toast");
+    el.textContent = message;
+    el.style.display = "block";
+
+    setTimeout(() => {
+        el.style.display = "none";
+    }, 3500);
+}
+
+async function init() {
+    try {
+        const [sum, students] = await Promise.all([
+            fetch("/api/summary").then(r => {
+                if (!r.ok) throw new Error("Could not load summary");
+                return r.json();
+            }),
+
+            fetch("/api/students").then(r => {
+                if (!r.ok) throw new Error("Could not load students");
+                return r.json();
+            })
+        ]);
+
+        state.students = students;
+
+        renderStats(sum);
+        renderCharts(sum);
+        renderDrives(sum.drives);
+
+        [...new Set(students.map(s => s.department))]
+            .sort()
+            .forEach(d => {
+                const option = document.createElement("option");
+                option.value = d;
+                option.textContent = d;
+                $("#fDept").append(option);
+            });
+
+        renderRows();
+    } catch (e) {
+        toast("Error loading dashboard: " + e.message);
+    }
+}
+
+function renderStats(s) {
+    $("#pct").textContent = s.percent + "%";
+    $("#ratio").textContent =
+        `${s.placed} of ${s.total} students`;
+
+    requestAnimationFrame(() => {
+        $("#bar").style.width = s.percent + "%";
+    });
+
+    $("#avg").textContent = Number(s.avgPackage).toFixed(1);
+    $("#max").textContent = Number(s.maxPackage).toFixed(1);
+    $("#placed").textContent = s.placed;
+    $("#unplaced").textContent = s.unplaced;
+}
+
+function renderCharts(s) {
+    charts.forEach(c => c.destroy());
+    charts = [];
+
+    charts.push(new Chart($("#cDept"), {
+        type: "bar",
+        data: {
+            labels: s.byDepartment.map(x => x.department),
+            datasets: [
+                {
+                    label: "Placed",
+                    data: s.byDepartment.map(x => x.placed),
+                    backgroundColor: "#1f7a7a"
+                },
+                {
+                    label: "Unplaced",
+                    data: s.byDepartment.map(x => x.unplaced),
+                    backgroundColor: "#b4493a"
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true }
+            }
+        }
+    }));
+
+    charts.push(new Chart($("#cComp"), {
+        type: "bar",
+        data: {
+            labels: s.byCompany.map(x => x.company),
+            datasets: [{
+                label: "Offers",
+                data: s.byCompany.map(x => x.offers),
+                backgroundColor: "#2b4a66"
+            }]
+        },
+        options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { beginAtZero: true }
+            }
+        }
+    }));
+
+    charts.push(new Chart($("#cPkg"), {
+        type: "doughnut",
+        data: {
+            labels: s.packageBands.map(x => x.band),
+            datasets: [{
+                data: s.packageBands.map(x => x.count),
+                backgroundColor: [
+                    "#d9962b",
+                    "#2b4a66",
+                    "#1f7a7a",
+                    "#b4493a"
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    }));
+}
+
+function renderDrives(drives) {
+    $("#drives").replaceChildren();
+
+    drives.forEach(d => {
+        const row = document.createElement("div");
+        row.className = "drive";
+
+        const left = document.createElement("div");
+        left.textContent = d.company;
+
+        const date = document.createElement("em");
+        date.textContent = d.date;
+        left.append(date);
+
+        const right = document.createElement("div");
+        right.textContent = d.status === "Completed"
+            ? `${d.offers} offers`
+            : d.status;
+
+        row.append(left, right);
+        $("#drives").append(row);
+    });
+}
+
+function filteredStudents() {
+    const q = $("#q").value.trim().toLowerCase();
+    const dept = $("#fDept").value;
+    const status = $("#fStatus").value;
+
+    return state.students
+        .filter(s =>
+            (!q ||
+                s.name.toLowerCase().includes(q) ||
+                (s.company || "").toLowerCase().includes(q) ||
+                s.email.toLowerCase().includes(q)) &&
+            (!dept || s.department === dept) &&
+            (!status || s.status === status)
+        )
+        .sort((a, b) => {
+            let av = a[state.sortKey] ?? "";
+            let bv = b[state.sortKey] ?? "";
+
+            if (typeof av === "number" &&
+                typeof bv === "number") {
+                return state.asc ? av - bv : bv - av;
+            }
+
+            return state.asc
+                ? String(av).localeCompare(String(bv))
+                : String(bv).localeCompare(String(av));
+        });
+}
+
+function renderRows() {
+    const rows = $("#rows");
+    rows.replaceChildren();
+
+    const shown = filteredStudents();
+
+    shown.forEach(s => {
+        const tr = document.createElement("tr");
+
+        const checkCell = document.createElement("td");
+        const check = document.createElement("input");
+
+        check.type = "checkbox";
+        check.checked = state.picked.has(s.id);
+        check.setAttribute("aria-label", "Select " + s.name);
+
+        check.addEventListener("change", () => {
+            if (check.checked) {
+                state.picked.add(s.id);
+            } else {
+                state.picked.delete(s.id);
+            }
+
+            updateEmailButton();
+            updateSelectAll();
+        });
+
+        checkCell.append(check);
+        tr.append(checkCell);
+
+        [
+            s.name,
+            s.department,
+            s.cgpa.toFixed(2),
+            s.status,
+            s.company || "–",
+            s.packageLpa == null
+                ? "–"
+                : s.packageLpa.toFixed(1)
+        ].forEach((value, i) => {
+            const td = document.createElement("td");
+
+            if (i === 3) {
+                const span = document.createElement("span");
+                span.className = "pill " + s.status;
+                span.textContent = value;
+                td.append(span);
+            } else {
+                td.textContent = value;
+            }
+
+            tr.append(td);
+        });
+
+        rows.append(tr);
+    });
+
+    updateEmailButton();
+    updateSelectAll();
+}
+
+function updateEmailButton() {
+    $("#emailBtn").disabled = state.picked.size === 0;
+}
+
+function updateSelectAll() {
+    const shown = filteredStudents();
+
+    $("#all").checked =
+        shown.length > 0 &&
+        shown.every(s => state.picked.has(s.id));
+
+    $("#all").indeterminate =
+        shown.some(s => state.picked.has(s.id)) &&
+        !$("#all").checked;
+}
+
+$("#q").addEventListener("input", renderRows);
+$("#fDept").addEventListener("change", renderRows);
+$("#fStatus").addEventListener("change", renderRows);
+
+document.querySelectorAll("th[data-k]").forEach(th => {
+    th.addEventListener("click", () => {
+        const key = th.dataset.k;
+
+        if (state.sortKey === key) {
+            state.asc = !state.asc;
+        } else {
+            state.sortKey = key;
+            state.asc = true;
+        }
+
+        renderRows();
+    });
+});
+
+$("#all").addEventListener("change", () => {
+    filteredStudents().forEach(s => {
+        if ($("#all").checked) {
+            state.picked.add(s.id);
+        } else {
+            state.picked.delete(s.id);
+        }
+    });
+
+    renderRows();
+});
+
+$("#emailBtn").addEventListener("click", () => {
+    $("#cnt").textContent = state.picked.size;
+    $("#dlg").showModal();
+});
+
+$("#cancel").addEventListener("click", () => {
+    $("#dlg").close();
+});
+
+$("#send").addEventListener("click", async () => {
+    const btn = $("#send");
+    btn.disabled = true;
+
+    try {
+        const response = await fetch("/api/email", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                studentIds: [...state.picked],
+                subject: $("#subj").value,
+                body: $("#body").value
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message || "Email request failed"
+            );
+        }
+
+        $("#dlg").close();
+
+        toast(data.demo
+            ? `${data.sent} demo email(s) logged. Configure SMTP to send real email.`
+            : `${data.sent} email(s) sent.`);
+
+        state.picked.clear();
+        renderRows();
+    } catch (e) {
+        toast(e.message);
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+init();
+</script>
+</body>
+</html>
